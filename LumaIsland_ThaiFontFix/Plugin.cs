@@ -34,7 +34,6 @@ namespace LumaIsland_ThaiFontFix
         {
             public const string MainFontName = "RSU";
             public const string PostfixRegularName = "_Regular";
-            public const string PostfixBoldName = "_Bold";
         }
 
         public static ManualLogSource g_logger;
@@ -64,9 +63,8 @@ namespace LumaIsland_ThaiFontFix
                 return currentFontAsset;
 
             // load font name with regular or bold
-            var fontNameKey = Config.MainFontName +
-                (currentFontAsset.name.Contains("Regular")
-                    ? Config.PostfixRegularName : Config.PostfixBoldName);
+            // only support regular for now
+            var fontNameKey = Config.MainFontName + Config.PostfixRegularName;
 
             // get from cache
             if (g_thaiFontAssetMap.TryGetValue(fontNameKey, out var fontAssetCache))
