@@ -3,11 +3,13 @@ using BepInEx.Logging;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Components;
+using UnityEngine.TextCore.Text;
 
 namespace LumaIsland_ThaiFontFix
 {
@@ -27,17 +29,18 @@ namespace LumaIsland_ThaiFontFix
     [HarmonyPatch]
     static class ThaiFontFix
     {
-        public class MyFontData
+        // config here
+        public static class Config
         {
-            public TMP_FontAsset fontAsset;
-            public string filePath;
-            public string fileName;
-            public string fontName;
+            public const string MainFontName = "RSU";
+            public const string PostfixRegularName = "_Regular";
+            public const string PostfixBoldName = "_Bold";
         }
 
         public static ManualLogSource g_logger;
         public static Harmony g_harmony;
-        public static Dictionary<string, MyFontData> g_fontDataMap = new();
+        public readonly static Dictionary<string, TMP_FontAsset> g_thaiFontAssetMap = [];
+        public readonly static HashSet<TMP_FontAsset> g_thaiFontAssetSet = [];
 
         public static void Setup(ManualLogSource logger)
         {
@@ -47,64 +50,64 @@ namespace LumaIsland_ThaiFontFix
             g_harmony.PatchAll();
         }
 
-        public static MyFontData GetThaiFontFix(string fontName)
+        public static void LogInfo(object msg)
         {
-            if (g_fontDataMap.TryGetValue(fontName, out var fontData))
-                return fontData;
+#if !RELEASE
+            g_logger.LogInfo(msg);
+#endif
+        }
 
-            string fileName = fontName + ".ttf";
-            string filePath = "D:\\LumaIslandModder\\" + fileName;
-            g_logger.LogInfo($"Try loading font RSU path: {filePath}");
+        public static TMP_FontAsset? GetThaiFontFix(TMP_FontAsset currentFontAsset)
+        {
+            // already fixed
+            if (g_thaiFontAssetSet.Contains(currentFontAsset))
+                return currentFontAsset;
 
-            var font = new Font(filePath);
-            var fontAsset = TMP_FontAsset.CreateFontAsset(font);
-            fontAsset.name = fontName;
-            fontAsset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
-            fontAsset.ReadFontAssetDefinition();
+            // load font name with regular or bold
+            var fontNameKey = Config.MainFontName +
+                (currentFontAsset.name.Contains("Regular")
+                    ? Config.PostfixRegularName : Config.PostfixBoldName);
 
+            // get from cache
+            if (g_thaiFontAssetMap.TryGetValue(fontNameKey, out var fontAssetCache))
+                return fontAssetCache;
 
-            fontData = new MyFontData()
+            // load new font
+            try
             {
-                fontAsset = fontAsset,
-                filePath = filePath,
-                fileName = fileName,
-                fontName = font.name
-            };
-            g_fontDataMap.Add(fontName, fontData);
-            g_logger.LogInfo($"Loaded font name: {font.name}");
 
-            return fontData;
+                string fontFileName = fontNameKey + ".ttf";
+                var currentAssembly = Assembly.GetExecutingAssembly();
+                var currentDir = Path.GetDirectoryName(currentAssembly.Location);
+                string fontFilePath = Path.Combine(currentDir, fontFileName);
+
+                fontAssetCache = TMP_FontAsset.CreateFontAsset(new Font(fontFilePath));
+                fontAssetCache.name = fontNameKey;
+                g_thaiFontAssetMap.Add(fontNameKey, fontAssetCache);
+                g_thaiFontAssetSet.Add(fontAssetCache);
+            }
+            catch (System.Exception ex)
+            {
+                LogInfo($"Failed to load font name: {fontNameKey}, exception: {ex}");
+            }
+
+            return fontAssetCache;
         }
 
         static Dictionary<string, string> g_fixStringCacheMap = new();
-        static TMP_Text lastFixTMP = null;
         public static void FixThaiString(TMP_Text tmp, ref string refTextValue)
         {
             if (ThaiFontAdjuster.IsThaiString(refTextValue) == false)
                 return;
 
             // create string thai fix cache
-            //if (g_fixStringCacheMap.ContainsKey(refTextValue) == false)
-            //{
-            //    var newStringFix = ThaiFontAdjuster.Adjust(refTextValue);
-            //    g_fixStringCacheMap.Add(refTextValue, newStringFix);
-            //}
-
-            //refTextValue = g_fixStringCacheMap[refTextValue];
-            refTextValue = ThaiFontAdjuster.Adjust(refTextValue);
-
-
-            // fix font
-            if (tmp.font.name.Contains("NotoSansThai"))
+            if (g_fixStringCacheMap.ContainsKey(refTextValue) == false)
             {
-                var newFontNameToLoad = "RSU_Regular";
-                if (tmp.font.name.Contains("Bold"))
-                    newFontNameToLoad = "RSU_Bold";
-
-                var oldFont = tmp.font;
-                tmp.font = GetThaiFontFix(newFontNameToLoad).fontAsset;
-                g_logger.LogInfo($"fix new font: {tmp.font.name}, original: {oldFont.name}");
+                var newStringFix = ThaiFontAdjuster.Adjust(refTextValue);
+                g_fixStringCacheMap.Add(refTextValue, newStringFix);
             }
+
+            refTextValue = g_fixStringCacheMap[refTextValue];
         }
 
         [HarmonyPrefix]
@@ -112,6 +115,24 @@ namespace LumaIsland_ThaiFontFix
         static void Prefix_TMPText_SetText(TMP_Text __instance, ref string value)
         {
             FixThaiString(__instance, ref value);
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(TMP_Text), "set_font")]
+        static void Prefix_TMPText_SetFont(TMP_Text __instance, ref TMP_FontAsset value)
+        {
+            // already fixed
+            if (g_thaiFontAssetSet.Contains(value))
+                return;
+
+            // don't match font
+            if (value.name.Contains("NotoSansThai") == false)
+                return;
+
+            // fixed it
+            var newFont = GetThaiFontFix(value);
+            if (newFont)
+                value = newFont;
         }
     }
 }
