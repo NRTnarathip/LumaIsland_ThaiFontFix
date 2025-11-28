@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net46</TargetFramework>
+		<AssemblyName>LumaIsland_ThaiFontFix</AssemblyName>
+		<Product> Luma Island Thai Font Fix</Product>
+		<Version>1.0.0</Version>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<LangVersion>latest</LangVersion>
+		<RestoreAdditionalProjectSources>
+			https://api.nuget.org/v3/index.json;
+			https://nuget.bepinex.dev/v3/index.json;
+			https://nuget.samboy.dev/v3/index.json
+		</RestoreAdditionalProjectSources>
+		<RootNamespace>LumaIsland_ThaiFontFix</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+		<PackageReference Include="BepInEx.Core" Version="5.*" />
+		<PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+		<PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="AzureValley">
+		  <HintPath>..\..\..\Luma Island_Data\Managed\AzureValley.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.Localization">
+		  <HintPath>..\..\..\Luma Island_Data\Managed\Unity.Localization.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.TextMeshPro">
+			<HintPath>..\..\..\Luma Island_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.UI">
+		  <HintPath>..\..\..\Luma Island_Data\Managed\UnityEngine.UI.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="copy /Y &quot;$(TargetDir)LumaIsland_ThaiFontFix.dll&quot; &quot;D:\SteamLibrary\steamapps\common\Luma Island\BepInEx\plugins\&quot;&#xD;&#xA;&#xD;&#xA;call &quot;D:\SteamLibrary\steamapps\common\Luma Island\Luma Island.exe&quot;&#xD;&#xA;" />
+	</Target>
+</Project>
