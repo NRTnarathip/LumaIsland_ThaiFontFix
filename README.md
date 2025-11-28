@@ -5,6 +5,14 @@
 
 <img src="https://i.postimg.cc/XqK9VswZ/Screenshot-2025-11-28-233212.png" >
 
+<p align="center">
+  <a><img src="https://custom-icon-badges.demolab.com/badge/C%23-%23239120.svg?logo=cshrp&logoColor=white" alt="CSharp"></a>
+  <a><img src="https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white" alt="Windows"></a>
+  <a href="https://github.com/NRTnarathip/LumaIsland_ThaiFontFix/releases"><img src="https://img.shields.io/github/v/release/NRTnarathip/LumaIsland_ThaiFontFix" alt="GitHub Release"></a>
+  <a><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
+  <a href="https://store.steampowered.com/app/2408820/Luma_Island/"><img src="https://img.shields.io/badge/Download_Game-%23000000.svg?logo=steam&logoColor=white" alt="Steam"></a>
+</p>
+
 # วิธีติดตั้ง
 1. โหลด ตัวรันมอด 👇
 - https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.4/BepInEx_win_x64_5.4.23.4.zip
@@ -19,7 +27,11 @@
 "Luma Island/BepInEx/plugins"
 5. เสร็จแล้ว และเข้าเกมเพื่อทดสอบ
 
+### 💁‍♂️ ติดต่อสอบถามได้ที่ดิสคอด SMAPI Thailand  ในห้องแชท "luma-island"
+- discord: https://discord.gg/KvNQKaz2Kt
+
 
 # แหล่งอ้างอิง & เครดิต
 - ฟอนต์ไทย RSU_Regular: https://www.rsu.ac.th/blog/id/655494cb68f67af53a2e0c2c
 - ThaiFontAdjuster: https://github.com/SaladLab/Unity3D.ThaiFontAdjuster
+- BepInEx: https://github.com/BepInEx/BepInEx
